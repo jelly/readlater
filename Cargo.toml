@@ -1,0 +1,15 @@
+[package]
+name = "readlater"
+version = "0.1.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.40"
+readability = "^0"
+structopt = "0.3.21"
+thiserror = "1.0.25"
+select = "0.5.0"
+reqwest = "0.11.3"
+rss = "1.10.0"
