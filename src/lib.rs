@@ -78,7 +78,7 @@ pub fn generate_epub(epub: &str) -> Result<String> {
             continue;
         }
 
-        let extension = path.extension().unwrap_or(std::ffi::OsStr::new(""));
+        let extension = path.extension().unwrap_or_else(|| std::ffi::OsStr::new(""));
         if extension != "html" {
             continue;
         }
@@ -104,7 +104,7 @@ pub fn generate_rss(rss: &str) -> Result<String> {
             continue;
         }
 
-        let extension = path.extension().unwrap_or(std::ffi::OsStr::new(""));
+        let extension = path.extension().unwrap_or_else(|| std::ffi::OsStr::new(""));
         if extension != "html" {
             continue;
         }
