@@ -24,7 +24,7 @@ fn get_default_cachedir() -> String {
     }
 }
 
-fn get_url_title(url: &String) -> Result<String> {
+fn get_url_title(url: &str) -> Result<String> {
     let resp = reqwest::blocking::get(url)?;
     let doc = Document::from_read(resp)?;
     let elem = doc.find(Name("title")).next();
@@ -59,7 +59,7 @@ pub fn readable_article(
     Ok(format!("{} {}", "Article saved to", filename))
 }
 
-pub fn generate_epub(epub: &String) -> Result<String> {
+pub fn generate_epub(epub: &str) -> Result<String> {
     let cache_dir = get_default_cachedir();
     let mut pandoc = Command::new("pandoc");
     pandoc
@@ -92,7 +92,7 @@ pub fn generate_epub(epub: &String) -> Result<String> {
     Ok(String::from_utf8(output.stdout)?)
 }
 
-pub fn generate_rss(rss: &String) -> Result<String> {
+pub fn generate_rss(rss: &str) -> Result<String> {
     let cache_dir = get_default_cachedir();
     let mut items = Vec::new();
 
