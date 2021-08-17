@@ -1,7 +1,5 @@
 use anyhow::Result;
 use readability::extractor;
-use reqwest;
-use rss;
 use select::document::Document;
 use select::predicate::Name;
 use std::env;
