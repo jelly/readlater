@@ -1,14 +1,30 @@
 use anyhow::Result;
+use chrono::prelude::*;
+use platform_dirs::AppDirs;
 use readability::extractor;
 use select::document::Document;
 use select::predicate::Name;
+use sqlite::Value;
 use std::env;
 use std::fs;
-use std::fs::File;
 use std::io::prelude::*;
 use std::process::Command;
 
 pub mod args;
+
+fn get_db_connection() -> Result<sqlite::Connection> {
+    let mut app_dirs = AppDirs::new(Some(env!("CARGO_PKG_NAME")), false).unwrap();
+    fs::create_dir_all(&app_dirs.data_dir)?;
+
+    app_dirs.data_dir.push("urls.db");
+
+    let connection = sqlite::open(app_dirs.data_dir)?;
+    connection
+        .execute("CREATE TABLE IF NOT EXISTS articles (url TEXT UNIQUE, title TEXT, html TEXT, description TEXT DEFAULT '', created DATETIME DEFAULT CURRENT_TIMESTAMP);")
+        .unwrap();
+
+    Ok(connection)
+}
 
 fn get_default_cachedir() -> String {
     let homedir = match env::var("HOME") {
@@ -40,23 +56,35 @@ fn get_url_title(url: &str) -> Result<String> {
 pub fn readable_article(
     url: String,
     title: Option<String>,
-    _desc: Option<String>,
+    desc: Option<String>,
     _feed_title: Option<String>,
 ) -> Result<String> {
     let title = match title {
         Some(title) => title,
         None => get_url_title(&url)?,
     };
+    let desc = desc.unwrap_or_else(|| String::from(""));
 
-    let cache_dir = get_default_cachedir();
-    fs::create_dir_all(&cache_dir)?;
-    let filename = format!("{}/{}.html", cache_dir, title);
-
+    let connection = get_db_connection()?;
     let data = extractor::scrape(url.as_str())?;
-    let mut file = File::create(&filename)?;
-    write!(file, "{}", data.content)?;
 
-    Ok(format!("{} {}", "Article saved to", filename))
+    let mut cursor = connection
+        .prepare("INSERT INTO articles (url, title, html, description) VALUES (?, ?, ?, ?)")
+        .unwrap()
+        .into_cursor();
+
+    cursor
+        .bind(&[
+            Value::String(url),
+            Value::String(title),
+            Value::String(data.content),
+            Value::String(desc),
+        ])
+        .unwrap();
+
+    cursor.next()?;
+
+    Ok(String::from("Article saved"))
 }
 
 pub fn generate_epub(epub: &str) -> Result<String> {
@@ -93,27 +121,21 @@ pub fn generate_epub(epub: &str) -> Result<String> {
 }
 
 pub fn generate_rss(rss: &str) -> Result<String> {
-    let cache_dir = get_default_cachedir();
+    let connection = get_db_connection()?;
     let mut items = Vec::new();
 
-    for entry in fs::read_dir(&cache_dir)? {
-        let entry = entry?;
-        let path = entry.path();
-        let duppath = path.clone();
-        if path.is_dir() {
-            continue;
-        }
+    let mut cursor = connection
+        .prepare("SELECT title,html,description,created FROM articles")
+        .unwrap()
+        .into_cursor();
 
-        let extension = path.extension().unwrap_or_else(|| std::ffi::OsStr::new(""));
-        if extension != "html" {
-            continue;
-        }
+    while let Some(row) = cursor.next().unwrap() {
+        let articlename = row[0].as_string().unwrap();
+        let data = row[1].as_string().unwrap();
+        let description = row[2].as_string().unwrap();
+        let created = row[3].as_string().unwrap();
 
-        let filepath = path.into_os_string().into_string().unwrap();
-        let epubfilename = duppath.file_name().unwrap().to_str().unwrap();
-        let articlename = epubfilename.strip_suffix(".html").unwrap();
-
-        let data = std::fs::read_to_string(&filepath)?;
+        let dt = Local.datetime_from_str(created, "%Y-%m-%d %H:%M:%S")?;
 
         let guid = rss::GuidBuilder::default()
             .value(articlename)
@@ -123,8 +145,9 @@ pub fn generate_rss(rss: &str) -> Result<String> {
 
         let item = rss::ItemBuilder::default()
             .title(Some(articlename.into()))
-            .description(Some(articlename.into()))
-            .content(Some(data))
+            .description(Some(description.into()))
+            .content(String::from(data))
+            .pub_date(Some(dt.to_rfc2822()))
             .guid(guid)
             .build()
             .map_err(anyhow::Error::msg)?;
