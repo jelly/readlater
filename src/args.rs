@@ -55,9 +55,9 @@ pub struct Rss {
 
 #[derive(Debug, StructOpt)]
 pub struct Cleanup {
-    /// Cleanup cached articles based on access time.
-    #[structopt(name = "seconds")]
-    pub age: u8,
+    /// Cleanup cached articles based on created time.
+    #[structopt(name = "days")]
+    pub days: u8,
 }
 
 #[derive(Debug, StructOpt)]

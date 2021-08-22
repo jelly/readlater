@@ -46,7 +46,19 @@ pub fn main() {
                 std::process::exit(1);
             }
         },
-        Command::Cleanup(_c) => {}
+        Command::Cleanup(cmd) => match readlater::cleanup(cmd.days) {
+            Ok(output) => {
+                if args.verbose {
+                    println!("{}", output);
+                }
+                std::process::exit(0);
+            }
+            Err(e) => {
+                eprintln!("Unable to generate html");
+                eprintln!("Reason: {}", e);
+                std::process::exit(1);
+            }
+        },
         Command::Article(cmd) => match readlater::readable_article(cmd.url, None, None, None) {
             Ok(output) => {
                 if args.verbose {

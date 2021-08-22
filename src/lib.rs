@@ -158,3 +158,20 @@ pub fn generate_rss(rss: &str) -> Result<String> {
 
     Ok(format!("RSS file written to {}", &rss))
 }
+
+pub fn cleanup(days: u8) -> Result<String> {
+    let connection = get_db_connection()?;
+
+    let mut cursor = connection
+        .prepare("DELETE FROM articles WHERE created <= date('now', ?)")
+        .unwrap()
+        .into_cursor();
+
+    cursor
+        .bind(&[Value::String(format!("-{} day", days))])
+        .unwrap();
+
+    cursor.next()?;
+
+    Ok(format!("Cleaned up articles older then {} days", days))
+}
