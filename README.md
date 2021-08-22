@@ -14,7 +14,7 @@ cargo run -- rss /tmp/test.rss
 
 ## epub output
 
-Epub generation support is availabe using `pandoc`.
+Epub generation support is availabe but requires `pandoc` to be installed.
 
 ## Newsboat bookmark
 
