@@ -54,6 +54,7 @@ pub fn readable_article(
 
     let connection = get_db_connection()?;
     let data = extractor::scrape(url.as_str())?;
+    let cleaned = ammonia::clean(&data.content);
 
     let mut cursor = connection
         .prepare("INSERT INTO articles (url, title, html, description) VALUES (?, ?, ?, ?)")
@@ -64,7 +65,7 @@ pub fn readable_article(
         .bind(&[
             Value::String(url),
             Value::String(title),
-            Value::String(data.content),
+            Value::String(cleaned),
             Value::String(desc),
         ])
         .unwrap();

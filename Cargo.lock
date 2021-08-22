@@ -12,6 +12,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "ammonia"
+version = "3.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2e445c26125ff80316eaea16e812d717b147b82a68682bd4730f74d4845c8b35"
+dependencies = [
+ "html5ever",
+ "lazy_static",
+ "maplit",
+ "markup5ever_rcdom",
+ "matches",
+ "tendril",
+ "url",
+]
+
+[[package]]
 name = "ansi_term"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -565,6 +580,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c41e0c4fef86961ac6d6f8a82609f55f31b05e4fce149ac5710e439df7619ba4"
 
 [[package]]
+name = "maplit"
+version = "1.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3e2e65a1a2e43cfcb47a895c4c8b10d1f4a61097f9f254f183aee60cad9c651d"
+
+[[package]]
 name = "markup5ever"
 version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -975,6 +996,7 @@ dependencies = [
 name = "readlater"
 version = "0.1.0"
 dependencies = [
+ "ammonia",
  "anyhow",
  "chrono",
  "platform-dirs",
