@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use chrono::prelude::*;
 use platform_dirs::AppDirs;
 use readability::extractor;
@@ -19,7 +19,7 @@ fn get_db_connection() -> Result<sqlite::Connection> {
 
     app_dirs.data_dir.push("urls.db");
 
-    let connection = sqlite::open(app_dirs.data_dir)?;
+    let connection = sqlite::open(app_dirs.data_dir).context("unable to open SQLite database")?;
     connection
         .execute("CREATE TABLE IF NOT EXISTS articles (url TEXT UNIQUE, title TEXT, html TEXT, description TEXT DEFAULT '', created DATETIME DEFAULT CURRENT_TIMESTAMP);")
         .unwrap();
@@ -98,11 +98,12 @@ pub fn generate_epub(epub: &str) -> Result<String> {
         let articlename = row[0].as_string().unwrap();
         let data = row[1].as_string().unwrap();
         let tempfile = tempdir.child(format!("{}.html", articlename));
-        std::fs::write(&tempfile, format!("<h1>{}</h1>{}", articlename, data))?;
+        std::fs::write(&tempfile, format!("<h1>{}</h1>{}", articlename, data))
+            .context("unable to write articles to tmp dir")?;
         pandoc.arg(tempfile);
     }
 
-    let output = pandoc.output()?;
+    let output = pandoc.output().context("Error while running pandoc")?;
 
     Ok(String::from_utf8(output.stdout)?)
 }
