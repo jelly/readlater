@@ -146,7 +146,7 @@ pub fn generate_rss(rss: &str) -> Result<String> {
     let channel = rss::ChannelBuilder::default()
         .title("Web Articles")
         .link("https://dodgy.download/articles.rss")
-        .description("desc")
+        .description("web articles RSS feed")
         .items(items)
         .build()
         .map_err(anyhow::Error::msg)?;
