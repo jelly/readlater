@@ -22,7 +22,3 @@ Epub generation support is availabe but requires `pandoc` to be installed.
 bookmark-cmd "/home/jelle/projects/readlater/target/debug/readlater newsboat"
 bookmark-autopilot yes
 ```
-
-## TODO
-
-* ammonia for sanitizing html
